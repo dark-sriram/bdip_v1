@@ -1,0 +1,93 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+from .schemas import AISummary
+
+
+@dataclass
+class AIEngine:
+    """
+    Simple AI layer for BDIP.
+
+    - Predicts conversion probability for each session
+    - Flags “high churn risk” sessions as those with low conversion probability
+    """
+
+    pipeline: Pipeline | None = None
+
+    def train(self, sessions: pd.DataFrame) -> None:
+        if sessions.empty:
+            self.pipeline = None
+            return
+
+        feature_cols_numeric = ["events", "pages", "revenue"]
+        feature_cols_categorical = ["device", "source"]
+
+        X = sessions[feature_cols_numeric + feature_cols_categorical].copy()
+        y = sessions["converted"].astype(int)
+
+        numeric_transformer = StandardScaler()
+        categorical_transformer = OneHotEncoder(handle_unknown="ignore")
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ("num", numeric_transformer, feature_cols_numeric),
+                ("cat", categorical_transformer, feature_cols_categorical),
+            ]
+        )
+
+        clf = LogisticRegression(max_iter=1000)
+        self.pipeline = Pipeline(steps=[("pre", preprocessor), ("clf", clf)])
+
+        # Handle edge case: only one class in y
+        if len(np.unique(y)) < 2:
+            # Fallback: create a dummy model that always predicts base rate
+            base_rate = float(y.mean())
+
+            class DummyModel:
+                def predict_proba(self, X_):
+                    return np.column_stack(
+                        [(1 - base_rate) * np.ones(len(X_)), base_rate * np.ones(len(X_))]
+                    )
+
+                def fit(self, X_, y_):
+                    return self
+
+            self.pipeline = Pipeline(steps=[("pre", preprocessor), ("clf", DummyModel())])
+            self.pipeline.fit(X, y)
+        else:
+            self.pipeline.fit(X, y)
+
+    def summarize(self, sessions: pd.DataFrame) -> AISummary:
+        if self.pipeline is None or sessions.empty:
+            return AISummary(
+                avg_conversion_probability=0.0,
+                high_risk_churn_share=0.0,
+                notes="Insufficient data for AI model; using defaults.",
+            )
+
+        feature_cols_numeric = ["events", "pages", "revenue"]
+        feature_cols_categorical = ["device", "source"]
+        X = sessions[feature_cols_numeric + feature_cols_categorical].copy()
+
+        proba = self.pipeline.predict_proba(X)[:, 1]  # probability of conversion
+        avg_conv_prob = float(np.mean(proba))
+
+        # High churn risk: very low probability of conversion
+        high_risk_mask = proba < 0.2
+        high_risk_share = float(np.mean(high_risk_mask)) if len(proba) else 0.0
+
+        return AISummary(
+            avg_conversion_probability=float(round(avg_conv_prob, 4)),
+            high_risk_churn_share=float(round(high_risk_share, 4)),
+            notes="Model trained on simulated sessions; interpret as directional.",
+        )
+
