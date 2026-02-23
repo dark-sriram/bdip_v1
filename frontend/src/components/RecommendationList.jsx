@@ -3,8 +3,9 @@ import { Badge } from "./Badge.jsx";
 export function RecommendationList({ recommendations }) {
   if (!recommendations?.length) {
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 text-sm text-slate-300">
-        No recommendations yet.
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-sm text-slate-300">
+        No recommendations yet. Once data flows through the funnel, the decision engine
+        will surface prioritized actions here.
       </div>
     );
   }
@@ -14,7 +15,7 @@ export function RecommendationList({ recommendations }) {
       {recommendations.map((r) => (
         <div
           key={r.id}
-          className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5"
+          className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-md shadow-slate-950/60"
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm font-semibold text-slate-50">{r.problem}</div>

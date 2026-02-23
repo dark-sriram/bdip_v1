@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -15,7 +15,7 @@ from .schemas import AISummary
 @dataclass
 class AIEngine:
     """
-    Simple AI layer for BDIP.
+    AI layer for BDIP.
 
     - Predicts conversion probability for each session
     - Flags “high churn risk” sessions as those with low conversion probability
@@ -44,12 +44,17 @@ class AIEngine:
             ]
         )
 
-        clf = LogisticRegression(max_iter=1000)
-        self.pipeline = Pipeline(steps=[("pre", preprocessor), ("clf", clf)])
+        # Use a small random forest to capture non‑linear effects and interactions.
+        base_model = RandomForestClassifier(
+            n_estimators=200,
+            max_depth=5,
+            random_state=42,
+            class_weight="balanced",
+        )
+        self.pipeline = Pipeline(steps=[("pre", preprocessor), ("clf", base_model)])
 
         # Handle edge case: only one class in y
         if len(np.unique(y)) < 2:
-            # Fallback: create a dummy model that always predicts base rate
             base_rate = float(y.mean())
 
             class DummyModel:
@@ -81,13 +86,20 @@ class AIEngine:
         proba = self.pipeline.predict_proba(X)[:, 1]  # probability of conversion
         avg_conv_prob = float(np.mean(proba))
 
-        # High churn risk: very low probability of conversion
-        high_risk_mask = proba < 0.2
-        high_risk_share = float(np.mean(high_risk_mask)) if len(proba) else 0.0
+        # High churn risk: sessions in the lowest 30% of predicted conversion probability.
+        if len(proba):
+            threshold = float(np.quantile(proba, 0.3))
+            high_risk_mask = proba <= threshold
+            high_risk_share = float(np.mean(high_risk_mask))
+        else:
+            high_risk_share = 0.0
 
         return AISummary(
             avg_conversion_probability=float(round(avg_conv_prob, 4)),
             high_risk_churn_share=float(round(high_risk_share, 4)),
-            notes="Model trained on simulated sessions; interpret as directional.",
+            notes=(
+                "Random forest model trained on simulated sessions; interpret probabilities "
+                "as directional signals, not exact forecasts."
+            ),
         )
 

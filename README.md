@@ -1,7 +1,5 @@
 ## AI-Driven Business Decision Intelligence Platform (BDIP)
 
-This repository contains a **full-stack implementation** of the BDIP concept described in your specification and in `[BDIP_Workflow_TechStack_Impact.pdf](file://BDIP_Workflow_TechStack_Impact.pdf)`.
-
 It implements:
 - **Event-style analytics data** (simulated GA4-style events)
 - **Business metrics layer** (conversion rate, funnel drop-off, LTV, etc.)

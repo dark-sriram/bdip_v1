@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { fetchDashboard } from "./api";
-import { API_BASE_URL } from "./config";
 import { Card } from "./components/Card.jsx";
 import { Container } from "./components/Container.jsx";
 import { KpiCard } from "./components/KpiCard.jsx";
@@ -29,9 +28,7 @@ export default function App() {
       const data = await fetchDashboard();
       setPayload(data);
     } catch (e) {
-      setError(
-        `Failed to load backend data. Ensure backend is running at ${API_BASE_URL}.`,
-      );
+      setError("Failed to load data from the decision engine. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -73,42 +70,46 @@ export default function App() {
   }, [metrics]);
 
   return (
-    <div className="min-h-screen">
-      <div className="border-b border-slate-800 bg-slate-950/40">
+    <div className="min-h-screen bg-slate-950 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+      <div className="border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950/90">
         <Container>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="text-lg font-semibold text-slate-50">
-                BDIP Executive Dashboard
+          <header className="flex flex-col gap-4 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1 text-xs font-medium text-slate-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                AI‑Driven Business Decision Intelligence
               </div>
-              <div className="mt-1 text-sm text-slate-400">
-                Problem → Evidence → Impact → Recommendation
+              <div className="text-2xl font-semibold tracking-tight text-slate-50">
+                Executive Funnel & Revenue Insights
+              </div>
+              <div className="text-sm text-slate-400">
+                Surface problems, show evidence, quantify impact, and recommend actions.
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="text-xs text-slate-400">
-                Backend: <span className="text-slate-200">{API_BASE_URL}</span>
-              </div>
               <button
                 onClick={load}
-                className="rounded-xl border border-slate-700 bg-slate-900/40 px-3 py-2 text-sm text-slate-100 hover:bg-slate-900"
+                className="rounded-xl border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-100 shadow-sm shadow-sky-900/40 transition hover:bg-sky-500/20"
               >
-                Refresh
+                Refresh insights
               </button>
             </div>
-          </div>
+          </header>
         </Container>
       </div>
 
       <Container>
         {loading ? (
-          <Card title="Loading">
-            <div className="text-sm text-slate-300">
-              Fetching metrics, AI signals, and recommendations…
-            </div>
-          </Card>
+          <div className="flex items-center justify-center py-24">
+            <Card title="Loading insights">
+              <div className="flex items-center gap-3 text-sm text-slate-300">
+                <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-sky-400" />
+                Fetching metrics, AI signals, and recommendations…
+              </div>
+            </Card>
+          </div>
         ) : error ? (
-          <Card title="Connection error" subtitle="Fix backend and retry">
+          <Card title="Connection error" subtitle="The decision engine is not reachable.">
             <div className="text-sm text-rose-200">{error}</div>
             <div className="mt-3 text-xs text-slate-400">
               Tip: run FastAPI with{" "}
