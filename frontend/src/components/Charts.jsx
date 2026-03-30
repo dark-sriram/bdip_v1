@@ -28,9 +28,9 @@ export function SimpleConversionChart({ metrics }) {
       <ResponsiveContainer>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
-          <XAxis dataKey="name" stroke="rgba(148,163,184,0.9)" />
+          <XAxis dataKey="name" stroke="rgba(0, 0, 0, 0.9)" />
           <YAxis
-            stroke="rgba(148,163,184,0.9)"
+            stroke="rgba(0, 0, 0, 0.9)"
             tickFormatter={formatPct}
             domain={[0, "dataMax + 0.05"]}
           />
@@ -48,7 +48,7 @@ export function SimpleConversionChart({ metrics }) {
             type="monotone"
             dataKey="conversion"
             name="Conversion rate"
-            stroke="rgba(56,189,248,1)"
+            stroke="rgb(149, 80, 188)"
             strokeWidth={2}
             dot={false}
           />

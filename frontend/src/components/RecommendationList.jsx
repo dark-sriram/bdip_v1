@@ -15,30 +15,30 @@ export function RecommendationList({ recommendations }) {
       {recommendations.map((r) => (
         <div
           key={r.id}
-          className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-md shadow-slate-950/60"
+          className="rounded-2xl bg-[#988aec]/30 p-5 shadow-md shadow-slate-950/60"
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="text-sm font-semibold text-slate-50">{r.problem}</div>
+            <div className="text-sm font-semibold text-black">{r.problem}</div>
             <div className="flex items-center gap-2">
-              <div className="text-xs text-slate-400">{r.area}</div>
+              <div className="text-xs text-black">{r.area}</div>
               <Badge severity={r.severity} />
             </div>
           </div>
 
           <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-              <div className="text-xs font-semibold text-slate-300">Evidence</div>
-              <div className="mt-1 text-sm text-slate-200">{r.evidence}</div>
+            <div className="rounded-xl bg-[#988aec]/30 p-3">
+              <div className="text-xs font-semibold text-black">Evidence</div>
+              <div className="mt-1 text-sm text-black">{r.evidence}</div>
             </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-              <div className="text-xs font-semibold text-slate-300">Impact</div>
-              <div className="mt-1 text-sm text-slate-200">{r.impact}</div>
+            <div className="rounded-xl bg-[#988aec]/30 p-3">
+              <div className="text-xs font-semibold text-black">Impact</div>
+              <div className="mt-1 text-sm text-black">{r.impact}</div>
             </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-              <div className="text-xs font-semibold text-slate-300">
+            <div className="rounded-xl bg-[#988aec]/30 p-3">
+              <div className="text-xs font-semibold text-black">
                 Recommended action
               </div>
-              <div className="mt-1 text-sm text-slate-200">{r.action}</div>
+              <div className="mt-1 text-sm text-black">{r.action}</div>
             </div>
           </div>
         </div>
