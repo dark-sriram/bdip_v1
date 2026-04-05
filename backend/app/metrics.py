@@ -8,13 +8,6 @@ from .schemas import MetricSummary
 
 
 def compute_core_metrics(events: pd.DataFrame) -> Tuple[MetricSummary, pd.DataFrame]:
-    """
-    Compute business metrics from raw event data.
-
-    Returns:
-        - MetricSummary Pydantic model
-        - Session-level DataFrame (for AI layer)
-    """
     sessions = (
         events.groupby("session_id")
         .agg(
@@ -31,11 +24,11 @@ def compute_core_metrics(events: pd.DataFrame) -> Tuple[MetricSummary, pd.DataFr
 
     total_sessions = len(sessions)
     total_users = sessions["user_id"].nunique()
-    total_converted = sessions["converted"].sum()
+    total_converted = int(sessions["converted"].sum())
+    total_revenue = float(sessions["revenue"].sum())
 
     conversion_rate = (total_converted / total_sessions) if total_sessions else 0.0
 
-    # Device-level conversion
     def device_conv(device_name: str) -> float:
         subset = sessions[sessions["device"] == device_name]
         if subset.empty:
@@ -45,35 +38,25 @@ def compute_core_metrics(events: pd.DataFrame) -> Tuple[MetricSummary, pd.DataFr
     mobile_conversion_rate = device_conv("mobile")
     desktop_conversion_rate = device_conv("desktop")
 
-    # Simple funnel modeling using page path presence
     def has_step(session_df: pd.Series, page: str) -> bool:
         sid = session_df["session_id"]
         pages = events[events["session_id"] == sid]["page"].unique()
         return page in pages
 
     sessions["saw_landing"] = sessions.apply(lambda r: has_step(r, "/landing"), axis=1)
-    sessions["saw_pricing"] = sessions.apply(lambda r: has_step(r, "/pricing"), axis=1)
     sessions["saw_checkout"] = sessions.apply(lambda r: has_step(r, "/checkout"), axis=1)
 
     funnel_base = sessions["saw_landing"].sum() or 1
-    reached_pricing = sessions["saw_pricing"].sum()
     reached_checkout = sessions["saw_checkout"].sum()
-
-    # Drop-off between landing and checkout
     funnel_dropoff_rate = 1.0 - (reached_checkout / funnel_base)
 
-    total_revenue = sessions["revenue"].sum()
     avg_order_value = (total_revenue / total_converted) if total_converted else 0.0
-
-    # Very simple LTV proxy: AOV * 2 (pretend 2 purchases per customer lifetime)
     est_ltv = avg_order_value * 2
 
-    # Retention proxy: fraction of users with more than one session
     session_counts_per_user = sessions.groupby("user_id")["session_id"].nunique()
     retained_users = (session_counts_per_user > 1).sum()
     retention_rate_proxy = (retained_users / total_users) if total_users else 0.0
 
-    # Engagement proxy: normalized events per session (0–1 scale)
     max_events = sessions["events"].max() or 1
     engagement_score = (sessions["events"].mean() / max_events) if total_sessions else 0.0
 
@@ -88,7 +71,8 @@ def compute_core_metrics(events: pd.DataFrame) -> Tuple[MetricSummary, pd.DataFr
         est_ltv=float(round(est_ltv, 2)),
         retention_rate_proxy=float(round(retention_rate_proxy, 4)),
         engagement_score=float(round(engagement_score, 4)),
+        total_revenue=float(round(total_revenue, 2)),
+        total_conversions=total_converted,
     )
 
     return metrics, sessions
-

@@ -1,60 +1,41 @@
 import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+  CartesianGrid, Line, LineChart, ResponsiveContainer,
+  Tooltip, XAxis, YAxis, Legend,
 } from "recharts";
 
-function formatPct(v) {
-  return `${Math.round(v * 100)}%`;
-}
+function fmtPct(v) { return `${Math.round(v * 100)}%`; }
 
 export function SimpleConversionChart({ metrics }) {
-  // We only have a snapshot in this demo; fake a short “trend” for executive UX.
   const base = metrics?.conversion_rate ?? 0;
   const data = [
-    { name: "T-3", conversion: Math.max(0, base * 0.9) },
+    { name: "T-3", conversion: Math.max(0, base * 0.9)  },
     { name: "T-2", conversion: Math.max(0, base * 0.95) },
     { name: "T-1", conversion: Math.max(0, base * 1.05) },
-    { name: "Now", conversion: Math.max(0, base) },
+    { name: "Now", conversion: Math.max(0, base)        },
   ];
-
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
-          <XAxis dataKey="name" stroke="rgba(0, 0, 0, 0.9)" />
-          <YAxis
-            stroke="rgba(0, 0, 0, 0.9)"
-            tickFormatter={formatPct}
-            domain={[0, "dataMax + 0.05"]}
-          />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <XAxis dataKey="name" stroke="var(--text-3)" tick={{ fill: "var(--text-3)", fontSize: 11 }} />
+          <YAxis stroke="var(--text-3)" tick={{ fill: "var(--text-3)", fontSize: 11 }}
+            tickFormatter={fmtPct} domain={[0, "dataMax + 0.05"]} />
           <Tooltip
-            formatter={(v) => formatPct(v)}
+            formatter={v => [fmtPct(v)]}
             contentStyle={{
-              background: "rgba(2,6,23,0.95)",
-              border: "1px solid rgba(30,41,59,1)",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border)",
               borderRadius: 12,
-              color: "rgba(226,232,240,1)",
+              color: "var(--text)",
+              fontSize: 12,
             }}
           />
-          <Legend />
-          <Line
-            type="monotone"
-            dataKey="conversion"
-            name="Conversion rate"
-            stroke="rgb(149, 80, 188)"
-            strokeWidth={2}
-            dot={false}
-          />
+          <Legend wrapperStyle={{ color: "var(--text-2)", fontSize: 12 }} />
+          <Line type="monotone" dataKey="conversion" name="Conversion rate"
+            stroke="var(--accent)" strokeWidth={2} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
   );
 }
-

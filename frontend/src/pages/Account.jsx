@@ -1,79 +1,66 @@
 import { useEffect, useState } from "react";
+import { fetchMe } from "../api";
+import { clearToken } from "../auth/authStore";
 import { useNavigate } from "react-router-dom";
 
-import { api, fetchMe } from "../api";
-import { clearUser, logout, getUser } from "../auth/authStore";
-import { Card } from "../components/Card.jsx";
-import { Container } from "../components/Container.jsx";
-
 export default function Account() {
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
-  const [user, setUserState] = useState(() => getUser());
+  useEffect(() => { fetchMe().then(setUser).catch(() => {}); }, []);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const me = await fetchMe();
-        if (!mounted) return;
-        setUserState(me);
-      } catch {
-        // handled by interceptor
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const onLogout = () => {
-    logout();
-    navigate("/login", { replace: true });
-  };
+  function handleLogout() { clearToken(); navigate("/login"); }
 
   return (
-    <Container>
-      <div className="pb-4">
-        <div className="text-lg font-semibold tracking-tight text-black">
-          Account
-        </div>
-        <div className="mt-1 text-sm text-slate-900">
-          JWT-authenticated session details.
+    <div>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Account</h1>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-3)" }}>Profile and platform settings</p>
         </div>
       </div>
+      <div className="page-body max-w-lg">
+        {user ? (
+          <>
+            <div className="card p-5">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-xl font-bold text-white"
+                  style={{ background: "var(--accent)" }}>
+                  {user.email[0].toUpperCase()}
+                </div>
+                <div>
+                  <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>{user.email}</div>
+                  <div className="text-xs" style={{ color: "var(--text-3)" }}>User ID: #{user.id}</div>
+                </div>
+              </div>
+              <div className="rounded-xl p-3 text-xs" style={{ background: "var(--bg-2)", color: "var(--text-3)" }}>
+                Member since: <span style={{ color: "var(--text-2)" }}>{user.created_at}</span>
+              </div>
+            </div>
 
-      <Card title="Profile" subtitle="Current user information">
-        <div className="space-y-3 text-sm text-black">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-black">Email</div>
-            <div className="font-semibold text-black">
-              {user?.email || "—"}
+            <div className="card p-5">
+              <div className="text-sm font-semibold mb-3" style={{ color: "var(--text)" }}>Platform Tier</div>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="badge badge-accent px-3 py-1">FREE TIER</span>
+                <span className="text-xs" style={{ color: "var(--text-3)" }}>Limited dashboards · Basic insights</span>
+              </div>
+              <div className="text-xs" style={{ color: "var(--text-3)" }}>
+                Upgrade to <strong style={{ color: "var(--accent)" }}>Pro</strong> for AI insights + integrations, or{" "}
+                <strong style={{ color: "var(--amber)" }}>Enterprise</strong> for custom analytics + SLA.
+              </div>
             </div>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-black">User ID</div>
-            <div className="font-semibold text-black">
-              {user?.id ?? "—"}
-            </div>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-black">Created</div>
-            <div className="font-semibold text-black">
-              {user?.created_at || "—"}
-            </div>
-          </div>
-        </div>
 
-        <div className="mt-5">
-          <button
-            onClick={onLogout}
-            className="rounded-xl border border-[#988aec]/80 bg-[#988aec]/30 px-4 py-2 text-sm font-medium text-[#59168b] transition hover:bg-[#cfc9ee]/30"
-          >
-            Logout
-          </button>
-        </div>
-      </Card>
-    </Container>
+            <button onClick={handleLogout}
+              className="w-full rounded-xl py-3 text-sm font-semibold transition-colors"
+              style={{ background: "var(--red-bg)", color: "var(--red)", border: "1px solid color-mix(in srgb, var(--red) 30%, transparent)" }}>
+              Sign out
+            </button>
+          </>
+        ) : (
+          <div className="text-sm flex items-center gap-2" style={{ color: "var(--text-3)" }}>
+            <span className="skeleton inline-block w-4 h-4 rounded-full" /> Loading…
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
-

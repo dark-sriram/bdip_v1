@@ -14,13 +14,6 @@ from .schemas import AISummary
 
 @dataclass
 class AIEngine:
-    """
-    AI layer for BDIP.
-
-    - Predicts conversion probability for each session
-    - Flags “high churn risk” sessions as those with low conversion probability
-    """
-
     pipeline: Pipeline | None = None
 
     def train(self, sessions: pd.DataFrame) -> None:
@@ -44,7 +37,6 @@ class AIEngine:
             ]
         )
 
-        # Use a small random forest to capture non‑linear effects and interactions.
         base_model = RandomForestClassifier(
             n_estimators=200,
             max_depth=5,
@@ -53,7 +45,6 @@ class AIEngine:
         )
         self.pipeline = Pipeline(steps=[("pre", preprocessor), ("clf", base_model)])
 
-        # Handle edge case: only one class in y
         if len(np.unique(y)) < 2:
             base_rate = float(y.mean())
 
@@ -83,10 +74,9 @@ class AIEngine:
         feature_cols_categorical = ["device", "source"]
         X = sessions[feature_cols_numeric + feature_cols_categorical].copy()
 
-        proba = self.pipeline.predict_proba(X)[:, 1]  # probability of conversion
+        proba = self.pipeline.predict_proba(X)[:, 1]
         avg_conv_prob = float(np.mean(proba))
 
-        # High churn risk: sessions in the lowest 30% of predicted conversion probability.
         if len(proba):
             threshold = float(np.quantile(proba, 0.3))
             high_risk_mask = proba <= threshold
@@ -94,12 +84,25 @@ class AIEngine:
         else:
             high_risk_share = 0.0
 
+        # Best converting source
+        top_source = None
+        top_device = None
+        if "source" in sessions.columns and "converted" in sessions.columns:
+            src_conv = sessions.groupby("source")["converted"].mean()
+            if not src_conv.empty:
+                top_source = str(src_conv.idxmax())
+        if "device" in sessions.columns and "converted" in sessions.columns:
+            dev_conv = sessions.groupby("device")["converted"].mean()
+            if not dev_conv.empty:
+                top_device = str(dev_conv.idxmax())
+
         return AISummary(
             avg_conversion_probability=float(round(avg_conv_prob, 4)),
             high_risk_churn_share=float(round(high_risk_share, 4)),
             notes=(
-                "Random forest model trained on simulated sessions; interpret probabilities "
-                "as directional signals, not exact forecasts."
+                "Random forest model trained on session data. "
+                "Probabilities are directional signals — not exact forecasts."
             ),
+            top_converting_source=top_source,
+            top_converting_device=top_device,
         )
-

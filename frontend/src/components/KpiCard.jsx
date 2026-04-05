@@ -1,17 +1,9 @@
-import { Card } from "./Card.jsx";
-
 export function KpiCard({ label, value, hint }) {
   return (
-    <Card title={label} subtitle={hint}>
-      <div className="flex items-baseline justify-between gap-2">
-        <div className="text-2xl font-semibold tracking-tight text-black">
-          {value}
-        </div>
-        <div className="text-[0.65rem] uppercase tracking-wide text-black">
-          Key KPI
-        </div>
-      </div>
-    </Card>
+    <div className="card p-5">
+      <div className="section-label mb-2">{label}</div>
+      <div className="kpi-value">{value}</div>
+      {hint && <div className="text-xs mt-1" style={{ color: "var(--text-3)" }}>{hint}</div>}
+    </div>
   );
 }
-

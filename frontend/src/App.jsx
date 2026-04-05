@@ -1,16 +1,19 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import AppLayout from "./layout/AppLayout.jsx";
 
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
-import Insights from "./pages/Insights.jsx";
-import Markets from "./pages/Markets.jsx";
-import Portfolio from "./pages/Portfolio.jsx";
-import Watchlist from "./pages/Watchlist.jsx";
-import Orders from "./pages/Orders.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import Decisions from "./pages/Decisions.jsx";
+import Alerts from "./pages/AlertsPage.jsx";
+import AskAI from "./pages/AskAI.jsx";
+import DataUpload from "./pages/DataUpload.jsx";
 import Account from "./pages/Account.jsx";
+import MarketplaceHub from "./pages/marketplace/MarketplaceHub.jsx";
+import MarketplaceProducts from "./pages/marketplace/MarketplaceProducts.jsx";
+import MarketplaceProfitLeakage from "./pages/marketplace/MarketplaceProfitLeakage.jsx";
+import MarketplaceRestock from "./pages/marketplace/MarketplaceRestock.jsx";
 
 export default function App() {
   return (
@@ -20,18 +23,21 @@ export default function App() {
 
       <Route element={<PrivateRoute />}>
         <Route element={<AppLayout />}>
-          <Route path="/insights" element={<Insights />} />
-          <Route path="/markets" element={<Markets />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/watchlist" element={<Watchlist />} />
-          <Route path="/orders" element={<Orders />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/decisions" element={<Decisions />} />
+          <Route path="/alerts" element={<Alerts />} />
+          <Route path="/ask" element={<AskAI />} />
+          <Route path="/upload" element={<DataUpload />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/marketplace" element={<MarketplaceHub />} />
+          <Route path="/marketplace/products" element={<MarketplaceProducts />} />
+          <Route path="/marketplace/profit" element={<MarketplaceProfitLeakage />} />
+          <Route path="/marketplace/restock" element={<MarketplaceRestock />} />
 
-          <Route path="/" element={<Navigate to="/insights" replace />} />
-          <Route path="*" element={<Navigate to="/insights" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Route>
     </Routes>
   );
 }
-

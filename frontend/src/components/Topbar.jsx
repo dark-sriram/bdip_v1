@@ -1,29 +1,23 @@
-export function Topbar({ userDisplay, onLogout }) {
-  return (
-    <div className="sticky top-0 z-10 bg-[#ffffff] backdrop-blur">
-      <div className="flex items-center justify-between gap-3 px-6 py-4">
-        <div>
-          <div className="text-sm font-semibold text-black">
-            Dashboard
-          </div>
-          <div className="text-xs text-black">
-            Insights + Markets + Portfolio + Decisions
-          </div>
-        </div>
+import { useEffect, useState } from "react";
+import { fetchMe } from "../api";
 
-        <div className="flex items-center gap-3">
-          <div className="hidden rounded-full border border-slate-200 bg-slate-300/20 px-3 py-1 text-xs text-black md:block">
-            Signed in as <span className="font-semibold">{userDisplay}</span>
-          </div>
-          <button
-            onClick={onLogout}
-            className="rounded-xl border border-slate-200 bg-slate-930/20 px-3 py-2 text-sm font-medium text-black hover:bg-[#ecebfe]"
-          >
-            Logout
-          </button>
-        </div>
+export function Topbar({ title, subtitle }) {
+  const [email, setEmail] = useState("");
+  useEffect(() => { fetchMe().then(u => setEmail(u.email)).catch(() => {}); }, []);
+  return (
+    <header className="flex h-14 shrink-0 items-center justify-between px-6"
+      style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-card)" }}>
+      <div>
+        {title && <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>{title}</div>}
+        {subtitle && <div className="text-xs" style={{ color: "var(--text-3)" }}>{subtitle}</div>}
       </div>
-    </div>
+      <div className="flex items-center gap-2">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white"
+          style={{ background: "var(--accent)" }}>
+          {email ? email[0].toUpperCase() : "?"}
+        </div>
+        <span className="hidden text-xs sm:block" style={{ color: "var(--text-3)" }}>{email}</span>
+      </div>
+    </header>
   );
 }
-

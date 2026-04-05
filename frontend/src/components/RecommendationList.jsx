@@ -1,49 +1,33 @@
-import { Badge } from "./Badge.jsx";
-
 export function RecommendationList({ recommendations }) {
   if (!recommendations?.length) {
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-sm text-slate-300">
+      <div className="card p-6 text-sm text-center" style={{ color: "var(--text-3)" }}>
         No recommendations yet. Once data flows through the funnel, the decision engine
         will surface prioritized actions here.
       </div>
     );
   }
-
   return (
-    <div className="space-y-4">
-      {recommendations.map((r) => (
-        <div
-          key={r.id}
-          className="rounded-2xl bg-[#988aec]/30 p-5 shadow-md shadow-slate-950/60"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="text-sm font-semibold text-black">{r.problem}</div>
+    <div className="flex flex-col gap-3">
+      {recommendations.map(r => (
+        <div key={r.id} className="card p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>{r.problem}</div>
             <div className="flex items-center gap-2">
-              <div className="text-xs text-black">{r.area}</div>
-              <Badge severity={r.severity} />
+              <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--text-3)" }}>{r.area}</span>
+              <span className={`badge badge-${r.severity}`}>{r.severity}</span>
             </div>
           </div>
-
-          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div className="rounded-xl bg-[#988aec]/30 p-3">
-              <div className="text-xs font-semibold text-black">Evidence</div>
-              <div className="mt-1 text-sm text-black">{r.evidence}</div>
-            </div>
-            <div className="rounded-xl bg-[#988aec]/30 p-3">
-              <div className="text-xs font-semibold text-black">Impact</div>
-              <div className="mt-1 text-sm text-black">{r.impact}</div>
-            </div>
-            <div className="rounded-xl bg-[#988aec]/30 p-3">
-              <div className="text-xs font-semibold text-black">
-                Recommended action
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[["Evidence", r.evidence], ["Impact", r.impact], ["Action", r.action]].map(([label, val]) => (
+              <div key={label} className="rounded-xl p-3" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+                <div className="section-label mb-1">{label}</div>
+                <div className="text-xs" style={{ color: "var(--text-2)" }}>{val}</div>
               </div>
-              <div className="mt-1 text-sm text-black">{r.action}</div>
-            </div>
+            ))}
           </div>
         </div>
       ))}
     </div>
   );
 }
-
