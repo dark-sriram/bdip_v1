@@ -53,7 +53,7 @@ async def get_current_user(request: Request, token: str = Depends(oauth2_scheme)
     from .db import get_db  # local import to avoid cycles
 
     with get_db() as conn:
-        row = conn.execute("SELECT id, email, created_at FROM users WHERE id = ?", (subject,)).fetchone()
+        row = conn.execute("SELECT id, email, created_at FROM users WHERE id = %s", (subject,)).fetchone()
 
     if not row:
         raise HTTPException(
