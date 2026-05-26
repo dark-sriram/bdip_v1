@@ -1,10 +1,5 @@
 {
-  "functions": {
-    "api/contact/route.js": {
-      "runtime": "edge"
-    }
-  },
   "rewrites": [
-    { "source": "/api/contact", "destination": "/api/contact/route.js" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
