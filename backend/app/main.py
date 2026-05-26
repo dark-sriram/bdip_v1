@@ -39,7 +39,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://bdip.vercel.app/"],
-    allow_credentials=True,
+    allow_credentials=false,
     allow_methods=["*"],
     allow_headers=["*"],
 )
