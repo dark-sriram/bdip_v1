@@ -36,6 +36,20 @@ app = FastAPI(
     version="2.0.0",
 )
 
+from fastapi.responses import JSONResponse
+from fastapi import Request
+
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(request: Request, rest_of_path: str):
+    return JSONResponse(
+        content={},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+        },
+    )
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
