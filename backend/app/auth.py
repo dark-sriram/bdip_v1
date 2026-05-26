@@ -27,8 +27,7 @@ def register(payload: RegisterRequest) -> AuthResponse:
             cur.execute(
                 "SELECT id FROM users WHERE email = %s", (payload.email.lower(),)
             )
-            existing = cur.fetchone()
-            if existing:
+            if cur.fetchone():
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered.")
 
             password_hash = hash_password(payload.password)
@@ -37,8 +36,7 @@ def register(payload: RegisterRequest) -> AuthResponse:
                 (payload.email.lower(), password_hash),
             )
             row = cur.fetchone()
-            user_id = int(row[0])
-        conn.commit()
+            user_id = int(row["id"])
 
     token = create_access_token(subject=str(user_id))
     return AuthResponse(access_token=token, token_type="bearer")
@@ -54,13 +52,12 @@ def login(payload: LoginRequest) -> AuthResponse:
             )
             row = cur.fetchone()
 
-        if not row:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")
-        if not verify_password(payload.password, row[1]):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")
-        user_id = int(row[0])
+    if not row:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")
+    if not verify_password(payload.password, row["password_hash"]):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")
 
-    token = create_access_token(subject=str(user_id))
+    token = create_access_token(subject=str(row["id"]))
     return AuthResponse(access_token=token, token_type="bearer")
 
 
