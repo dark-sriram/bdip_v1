@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 from fastapi import APIRouter, Depends, HTTPException, Response
-
 from .db import get_db
 from .schemas import (
     DecisionApproveRequest,
@@ -20,22 +18,16 @@ def approve_decision(
     user: dict = Depends(get_current_user),
 ) -> DecisionLogEntry:
     with get_db() as conn:
-        cur = conn.execute(
-            """
-            INSERT INTO decision_log (user_id, recommendation_id, action, status, expected_outcome)
-            VALUES (%s, %s, %s, 'approved', %s)
-            """,
-            (
-                user["id"],
-                payload.recommendation_id,
-                payload.action,
-                payload.expected_outcome,
-            ),
-        )
-        row_id = cur.lastrowid
-        row = conn.execute(
-            "SELECT * FROM decision_log WHERE id = %s", (row_id,)
-        ).fetchone()
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO decision_log (user_id, recommendation_id, action, status, expected_outcome)
+                VALUES (%s, %s, %s, 'approved', %s)
+                RETURNING *
+                """,
+                (user["id"], payload.recommendation_id, payload.action, payload.expected_outcome),
+            )
+            row = cur.fetchone()
     return DecisionLogEntry(**dict(row))
 
 
@@ -46,17 +38,16 @@ def reject_decision(
 ) -> DecisionLogEntry:
     action = payload.reason or "Decision rejected by user."
     with get_db() as conn:
-        cur = conn.execute(
-            """
-            INSERT INTO decision_log (user_id, recommendation_id, action, status)
-            VALUES (%s, %s, %s, 'rejected')
-            """,
-            (user["id"], payload.recommendation_id, action),
-        )
-        row_id = cur.lastrowid
-        row = conn.execute(
-            "SELECT * FROM decision_log WHERE id = %s", (row_id,)
-        ).fetchone()
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO decision_log (user_id, recommendation_id, action, status)
+                VALUES (%s, %s, %s, 'rejected')
+                RETURNING *
+                """,
+                (user["id"], payload.recommendation_id, action),
+            )
+            row = cur.fetchone()
     return DecisionLogEntry(**dict(row))
 
 
@@ -65,15 +56,17 @@ def get_decision_history(
     user: dict = Depends(get_current_user),
 ) -> list[DecisionLogEntry]:
     with get_db() as conn:
-        rows = conn.execute(
-            """
-            SELECT * FROM decision_log
-            WHERE user_id = %s
-            ORDER BY created_at DESC
-            LIMIT 100
-            """,
-            (user["id"],),
-        ).fetchall()
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT * FROM decision_log
+                WHERE user_id = %s
+                ORDER BY created_at DESC
+                LIMIT 100
+                """,
+                (user["id"],),
+            )
+            rows = cur.fetchall()
     return [DecisionLogEntry(**dict(r)) for r in rows]
 
 
@@ -84,23 +77,23 @@ def update_actual_outcome(
     user: dict = Depends(get_current_user),
 ) -> DecisionLogEntry:
     with get_db() as conn:
-        row = conn.execute(
-            "SELECT * FROM decision_log WHERE id = %s AND user_id = %s",
-            (decision_id, user["id"]),
-        ).fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Decision not found.")
-        conn.execute(
-            """
-            UPDATE decision_log
-            SET actual_result = %s, resolved_at = datetime('now')
-            WHERE id = %s
-            """,
-            (payload.actual_result, decision_id),
-        )
-        updated = conn.execute(
-            "SELECT * FROM decision_log WHERE id = %s", (decision_id,)
-        ).fetchone()
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT * FROM decision_log WHERE id = %s AND user_id = %s",
+                (decision_id, user["id"]),
+            )
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Decision not found.")
+            cur.execute(
+                """
+                UPDATE decision_log
+                SET actual_result = %s, resolved_at = NOW()
+                WHERE id = %s
+                RETURNING *
+                """,
+                (payload.actual_result, decision_id),
+            )
+            updated = cur.fetchone()
     return DecisionLogEntry(**dict(updated))
 
 
@@ -110,11 +103,12 @@ def delete_decision(
     user: dict = Depends(get_current_user),
 ) -> Response:
     with get_db() as conn:
-        row = conn.execute(
-            "SELECT id FROM decision_log WHERE id = %s AND user_id = %s",
-            (decision_id, user["id"]),
-        ).fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Decision not found.")
-        conn.execute("DELETE FROM decision_log WHERE id = %s", (decision_id,))
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id FROM decision_log WHERE id = %s AND user_id = %s",
+                (decision_id, user["id"]),
+            )
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Decision not found.")
+            cur.execute("DELETE FROM decision_log WHERE id = %s", (decision_id,))
     return Response(status_code=204)
