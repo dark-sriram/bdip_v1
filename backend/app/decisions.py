@@ -23,7 +23,7 @@ def approve_decision(
         cur = conn.execute(
             """
             INSERT INTO decision_log (user_id, recommendation_id, action, status, expected_outcome)
-            VALUES (?, ?, ?, 'approved', ?)
+            VALUES (%s, %s, %s, 'approved', %s)
             """,
             (
                 user["id"],
@@ -34,7 +34,7 @@ def approve_decision(
         )
         row_id = cur.lastrowid
         row = conn.execute(
-            "SELECT * FROM decision_log WHERE id = ?", (row_id,)
+            "SELECT * FROM decision_log WHERE id = %s", (row_id,)
         ).fetchone()
     return DecisionLogEntry(**dict(row))
 
@@ -49,13 +49,13 @@ def reject_decision(
         cur = conn.execute(
             """
             INSERT INTO decision_log (user_id, recommendation_id, action, status)
-            VALUES (?, ?, ?, 'rejected')
+            VALUES (%s, %s, %s, 'rejected')
             """,
             (user["id"], payload.recommendation_id, action),
         )
         row_id = cur.lastrowid
         row = conn.execute(
-            "SELECT * FROM decision_log WHERE id = ?", (row_id,)
+            "SELECT * FROM decision_log WHERE id = %s", (row_id,)
         ).fetchone()
     return DecisionLogEntry(**dict(row))
 
@@ -68,7 +68,7 @@ def get_decision_history(
         rows = conn.execute(
             """
             SELECT * FROM decision_log
-            WHERE user_id = ?
+            WHERE user_id = %s
             ORDER BY created_at DESC
             LIMIT 100
             """,
@@ -85,7 +85,7 @@ def update_actual_outcome(
 ) -> DecisionLogEntry:
     with get_db() as conn:
         row = conn.execute(
-            "SELECT * FROM decision_log WHERE id = ? AND user_id = ?",
+            "SELECT * FROM decision_log WHERE id = %s AND user_id = %s",
             (decision_id, user["id"]),
         ).fetchone()
         if not row:
@@ -93,13 +93,13 @@ def update_actual_outcome(
         conn.execute(
             """
             UPDATE decision_log
-            SET actual_result = ?, resolved_at = datetime('now')
-            WHERE id = ?
+            SET actual_result = %s, resolved_at = datetime('now')
+            WHERE id = %s
             """,
             (payload.actual_result, decision_id),
         )
         updated = conn.execute(
-            "SELECT * FROM decision_log WHERE id = ?", (decision_id,)
+            "SELECT * FROM decision_log WHERE id = %s", (decision_id,)
         ).fetchone()
     return DecisionLogEntry(**dict(updated))
 
@@ -111,10 +111,10 @@ def delete_decision(
 ) -> Response:
     with get_db() as conn:
         row = conn.execute(
-            "SELECT id FROM decision_log WHERE id = ? AND user_id = ?",
+            "SELECT id FROM decision_log WHERE id = %s AND user_id = %s",
             (decision_id, user["id"]),
         ).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Decision not found.")
-        conn.execute("DELETE FROM decision_log WHERE id = ?", (decision_id,))
+        conn.execute("DELETE FROM decision_log WHERE id = %s", (decision_id,))
     return Response(status_code=204)
