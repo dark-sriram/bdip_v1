@@ -14,6 +14,7 @@ if DATABASE_URL and DATABASE_URL.startswith("postgresql"):
     def get_db():
         conn = psycopg2.connect(DATABASE_URL,sslmode="require")
         conn.autocommit = False
+        conn.cursor_factory = psycopg2.extras.RealDictCursor
         try:
             yield conn
             conn.commit()
