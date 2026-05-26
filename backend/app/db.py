@@ -1,7 +1,6 @@
 from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 import bcrypt
-from .db import get_db
 from .schemas import AuthMeResponse, AuthResponse, LoginRequest, RegisterRequest
 from .security import create_access_token, get_current_user
 
