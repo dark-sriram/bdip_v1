@@ -29,14 +29,14 @@ def verify_password(password: str, password_hash: str) -> bool:
 def register(payload: RegisterRequest) -> AuthResponse:
     with get_db() as conn:
         existing = conn.execute(
-            "SELECT id FROM users WHERE email = ?", (payload.email.lower(),)
+            "SELECT id FROM users WHERE email = %s", (payload.email.lower(),)
         ).fetchone()
         if existing:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered.")
 
         password_hash = hash_password(payload.password)
         cur = conn.execute(
-            "INSERT INTO users (email, password_hash) VALUES (?, ?)",
+            "INSERT INTO users (email, password_hash) VALUES (%s, %s)",
             (payload.email.lower(), password_hash),
         )
         user_id = int(cur.lastrowid)
@@ -49,7 +49,7 @@ def register(payload: RegisterRequest) -> AuthResponse:
 def login(payload: LoginRequest) -> AuthResponse:
     with get_db() as conn:
         row = conn.execute(
-            "SELECT id, password_hash FROM users WHERE email = ?",
+            "SELECT id, password_hash FROM users WHERE email = %s",
             (payload.email.lower(),),
         ).fetchone()
         if not row:
