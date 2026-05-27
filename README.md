@@ -1,10 +1,12 @@
-# BDIP v2.0 — Business Decision Intelligence Platform
+# BDIP — Business Decision Intelligence Platform
 
 A full-stack AI-powered decision intelligence platform built with **FastAPI** (backend) + **React + Vite** (frontend).
 
 ---
 
-## What's New in v2.0
+# Live Link - https://bdip.vercel.app/ 
+
+--- 
 
 ### Backend
 | Module | What's new |
