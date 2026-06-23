@@ -151,3 +151,9 @@ npm run dev
 4. **Explainable AI** — every recommendation shows which metrics triggered it and confidence level
 5. **Forecasting** — 4-week ahead outlook on conversion, revenue, engagement
 6. **Threshold alerts** — 8 configurable rules evaluated in real-time
+
+---
+
+## Contributors
+1. Sriram
+2. Hari krishnan
